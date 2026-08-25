@@ -1,0 +1,1345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentNews — Real-time news infrastructure for AI agents</title>
+    <meta
+      name="description"
+      content="AgentNews turns thousands of duplicate articles into one structured, sourced, continuously-updated event — built for AI agents, not browser tabs."
+    />
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #0a121f;
+        --ink-2: #101b2e;
+        --paper: #f5f8fa;
+        --paper-2: #ffffff;
+        --line-dark: #1e2c42;
+        --line-light: #e1e8ee;
+        --hi-dark: #edf3f8;
+        --lo-dark: #93a6bc;
+        --hi-light: #101827;
+        --lo-light: #5a6b7d;
+        --brand: #1c7293;
+        --brand-deep: #0f4c68;
+        --brand-soft: #2e93b8;
+        --signal: #f2a43b;
+        --good: #35b7a0;
+        --font-display: "Fraunces", serif;
+        --font-body: "Inter", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+        --container: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--font-body);
+        background: var(--paper);
+        color: var(--hi-light);
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.55;
+      }
+      img,
+      svg {
+        display: block;
+        max-width: 100%;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      ul {
+        list-style: none;
+      }
+
+      .wrap {
+        max-width: var(--container);
+        margin: 0 auto;
+        padding: 0 clamp(1.25rem, 4vw, 2.5rem);
+      }
+
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      /* ---------- NAV ---------- */
+      header.nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(10, 18, 31, 0.86);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line-dark);
+      }
+      .nav-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem clamp(1.25rem, 4vw, 2.5rem);
+        max-width: var(--container);
+        margin: 0 auto;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 1.15rem;
+        color: var(--hi-dark);
+      }
+      .brand-mark {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--signal);
+        box-shadow: 0 0 0 3px rgba(242, 164, 59, 0.18);
+      }
+      nav.links {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+      }
+      nav.links a {
+        font-size: 0.88rem;
+        color: var(--lo-dark);
+        font-weight: 500;
+        transition: color 0.15s ease;
+      }
+      nav.links a:hover {
+        color: var(--hi-dark);
+      }
+      .nav-cta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--brand);
+        color: #fff !important;
+        padding: 0.55rem 1rem;
+        border-radius: 7px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: background 0.15s ease;
+      }
+      .nav-cta:hover {
+        background: var(--brand-soft);
+      }
+      .menu-btn {
+        display: none;
+        background: none;
+        border: 1px solid var(--line-dark);
+        color: var(--hi-dark);
+        border-radius: 7px;
+        width: 2.4rem;
+        height: 2.4rem;
+        font-size: 1.1rem;
+        cursor: pointer;
+      }
+      .mobile-panel {
+        display: none;
+      }
+
+      @media (max-width: 860px) {
+        nav.links {
+          display: none;
+        }
+        .menu-btn {
+          display: block;
+        }
+        header.nav.open .mobile-panel {
+          display: flex;
+          flex-direction: column;
+          gap: 0.2rem;
+          padding: 0 clamp(1.25rem, 4vw, 2.5rem) 1.25rem;
+        }
+        .mobile-panel a {
+          padding: 0.7rem 0;
+          color: var(--lo-dark);
+          font-size: 0.95rem;
+          border-top: 1px solid var(--line-dark);
+        }
+        .mobile-panel a.nav-cta {
+          border: none;
+          margin-top: 0.6rem;
+          text-align: center;
+          color: #fff !important;
+        }
+      }
+
+      /* ---------- HERO ---------- */
+      .hero {
+        background:
+          radial-gradient(
+            ellipse 900px 500px at 78% -8%,
+            rgba(28, 114, 147, 0.35),
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 700px 500px at 8% 105%,
+            rgba(28, 114, 147, 0.18),
+            transparent 60%
+          ),
+          var(--ink);
+        color: var(--hi-dark);
+        padding: clamp(3.5rem, 8vw, 6.5rem) 0 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--lo-dark);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line-dark);
+        padding: 0.4rem 0.8rem 0.4rem 0.65rem;
+        border-radius: 99px;
+        margin-bottom: 1.75rem;
+      }
+      .badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--signal);
+        animation: pulseDot 1.8s ease-in-out infinite;
+      }
+      @keyframes pulseDot {
+        0%,
+        100% {
+          opacity: 1;
+          box-shadow: 0 0 0 0 rgba(242, 164, 59, 0.5);
+        }
+        50% {
+          opacity: 0.55;
+          box-shadow: 0 0 0 5px rgba(242, 164, 59, 0);
+        }
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: clamp(2rem, 5vw, 3.5rem);
+        align-items: center;
+        padding-bottom: clamp(3rem, 7vw, 4.5rem);
+      }
+      .hero .eyebrow {
+        color: var(--brand-soft);
+        margin-bottom: 0.9rem;
+      }
+      h1.hero-title {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: clamp(2.6rem, 5.4vw, 4.1rem);
+        line-height: 1.04;
+        letter-spacing: -0.01em;
+        color: var(--hi-dark);
+        margin-bottom: 1.25rem;
+      }
+      h1.hero-title em {
+        font-style: italic;
+        color: var(--brand-soft);
+      }
+      .hero-sub {
+        font-size: clamp(1rem, 1.6vw, 1.15rem);
+        color: var(--lo-dark);
+        max-width: 34rem;
+        margin-bottom: 2.1rem;
+      }
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.92rem;
+        font-weight: 600;
+        padding: 0.8rem 1.35rem;
+        border-radius: 8px;
+        transition:
+          transform 0.15s ease,
+          background 0.15s ease,
+          border-color 0.15s ease;
+      }
+      .btn-primary {
+        background: var(--brand);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: var(--brand-soft);
+        transform: translateY(-1px);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--hi-dark);
+        border: 1px solid var(--line-dark);
+      }
+      .btn-ghost:hover {
+        border-color: var(--brand-soft);
+        color: var(--brand-soft);
+        transform: translateY(-1px);
+      }
+
+      /* ---------- SIGNATURE ANIMATION ---------- */
+      .signature {
+        position: relative;
+        height: clamp(300px, 34vw, 380px);
+      }
+      .stage {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .article-card {
+        position: absolute;
+        width: 190px;
+        padding: 0.85rem 0.95rem;
+        background: var(--ink-2);
+        border: 1px solid var(--line-dark);
+        border-radius: 10px;
+        font-family: var(--font-mono);
+        animation: mergeCard 8s ease-in-out infinite;
+      }
+      .article-card .src {
+        font-size: 0.62rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--lo-dark);
+        margin-bottom: 0.4rem;
+        display: block;
+      }
+      .article-card .hl {
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        color: var(--hi-dark);
+        line-height: 1.35;
+        font-weight: 500;
+      }
+      .c1 {
+        top: 4%;
+        left: 6%;
+        transform: rotate(-6deg);
+        animation-delay: 0s;
+        z-index: 1;
+      }
+      .c2 {
+        top: 2%;
+        left: 34%;
+        transform: rotate(3deg);
+        animation-delay: 0.12s;
+        z-index: 2;
+      }
+      .c3 {
+        top: 20%;
+        left: 14%;
+        transform: rotate(-2deg);
+        animation-delay: 0.24s;
+        z-index: 3;
+      }
+      .c4 {
+        top: 16%;
+        left: 42%;
+        transform: rotate(7deg);
+        animation-delay: 0.36s;
+        z-index: 1;
+      }
+
+      @keyframes mergeCard {
+        0%,
+        12% {
+          opacity: 1;
+        }
+        26%,
+        68% {
+          opacity: 0;
+        }
+        82%,
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .event-card {
+        position: absolute;
+        left: 8%;
+        right: 4%;
+        top: 34%;
+        background: linear-gradient(165deg, var(--brand-deep), #0c2536);
+        border: 1px solid rgba(46, 147, 184, 0.45);
+        border-radius: 12px;
+        padding: 1.35rem 1.5rem;
+        box-shadow: 0 25px 60px -20px rgba(0, 0, 0, 0.55);
+        animation: revealEvent 8s ease-in-out infinite;
+      }
+      .event-card .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--signal);
+        border: 1px solid rgba(242, 164, 59, 0.4);
+        padding: 0.2rem 0.5rem;
+        border-radius: 99px;
+        margin-bottom: 0.7rem;
+      }
+      .event-card h4 {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 0.7rem;
+        line-height: 1.25;
+      }
+      .event-meta {
+        display: flex;
+        gap: 1.1rem;
+        flex-wrap: wrap;
+      }
+      .event-meta div {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        color: var(--lo-dark);
+      }
+      .event-meta b {
+        display: block;
+        color: #fff;
+        font-size: 0.85rem;
+        font-family: var(--font-body);
+      }
+
+      @keyframes revealEvent {
+        0%,
+        22% {
+          opacity: 0;
+          transform: translateY(10px) scale(0.97);
+        }
+        34%,
+        62% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        76%,
+        100% {
+          opacity: 0;
+          transform: translateY(10px) scale(0.97);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .article-card,
+        .event-card,
+        .badge .dot,
+        .ticker-track {
+          animation: none !important;
+        }
+        .event-card {
+          opacity: 1;
+          transform: none;
+        }
+        .article-card {
+          opacity: 0.18;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .hero-grid {
+          grid-template-columns: 1fr;
+        }
+        .signature {
+          height: 320px;
+          margin-top: 1rem;
+        }
+      }
+      @media (max-width: 480px) {
+        .article-card {
+          width: 150px;
+          font-size: 0.7rem;
+        }
+      }
+
+      /* ---------- TICKER ---------- */
+      .ticker-wrap {
+        border-top: 1px solid var(--line-dark);
+        background: var(--ink-2);
+        padding: 0.9rem 0;
+        overflow: hidden;
+      }
+      .ticker-label {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        color: var(--lo-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0 clamp(1.25rem, 4vw, 2.5rem) 0.6rem;
+      }
+      .ticker-track {
+        display: flex;
+        gap: 0.7rem;
+        width: max-content;
+        animation: tickerScroll 34s linear infinite;
+      }
+      @keyframes tickerScroll {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+      .ticker-track:hover {
+        animation-play-state: paused;
+      }
+      .pill {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--hi-dark);
+        background: var(--ink);
+        border: 1px solid var(--line-dark);
+        padding: 0.5rem 0.9rem;
+        border-radius: 99px;
+        white-space: nowrap;
+      }
+      .pill .p-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--good);
+      }
+      .pill .p-score {
+        color: var(--lo-dark);
+      }
+
+      /* ---------- SECTIONS (light) ---------- */
+      section {
+        padding: clamp(4rem, 8vw, 6.5rem) 0;
+      }
+      .section-head {
+        max-width: 640px;
+        margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+      }
+      .section-head .eyebrow {
+        color: var(--brand);
+        margin-bottom: 0.7rem;
+      }
+      .section-head h2 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: clamp(1.8rem, 3.4vw, 2.5rem);
+        line-height: 1.14;
+        color: var(--hi-light);
+      }
+      .section-head p {
+        margin-top: 0.9rem;
+        color: var(--lo-light);
+        font-size: 1.02rem;
+        max-width: 36rem;
+      }
+
+      /* problem grid */
+      .problem-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1px;
+        background: var(--line-light);
+        border: 1px solid var(--line-light);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .problem-card {
+        background: var(--paper-2);
+        padding: 1.9rem 1.6rem;
+      }
+      .problem-card .icon {
+        width: 34px;
+        height: 34px;
+        margin-bottom: 1.1rem;
+        color: var(--brand);
+      }
+      .problem-card h3 {
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 1.02rem;
+        margin-bottom: 0.55rem;
+        color: var(--hi-light);
+      }
+      .problem-card p {
+        font-size: 0.9rem;
+        color: var(--lo-light);
+      }
+
+      @media (max-width: 900px) {
+        .problem-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 560px) {
+        .problem-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* how it works */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.75rem;
+        position: relative;
+      }
+      .step {
+        position: relative;
+      }
+      .step .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--brand);
+        margin-bottom: 0.9rem;
+        display: block;
+      }
+      .step h3 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 1.15rem;
+        margin-bottom: 0.5rem;
+        color: var(--hi-light);
+      }
+      .step p {
+        font-size: 0.9rem;
+        color: var(--lo-light);
+      }
+      .step:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 0.55rem;
+        left: 100%;
+        width: calc(1.75rem - 2px);
+        height: 1px;
+        background: var(--line-light);
+      }
+      @media (max-width: 900px) {
+        .steps {
+          grid-template-columns: 1fr 1fr;
+        }
+        .step:nth-child(2)::after {
+          display: none;
+        }
+      }
+      @media (max-width: 560px) {
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        .step::after {
+          display: none;
+        }
+      }
+
+      /* code / product preview */
+      .code-panel {
+        background: var(--ink);
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--line-dark);
+      }
+      .code-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.85rem 1.1rem;
+        border-bottom: 1px solid var(--line-dark);
+      }
+      .code-bar .dots {
+        display: flex;
+        gap: 0.35rem;
+        margin-right: 0.6rem;
+      }
+      .code-bar .dots span {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #2a3b52;
+      }
+      .code-bar .path {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--lo-dark);
+      }
+      .code-body {
+        padding: 1.5rem clamp(1.2rem, 3vw, 2rem);
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        line-height: 1.75;
+        color: #b9cbdb;
+        overflow-x: auto;
+      }
+      .code-body .k {
+        color: #7fc9e0;
+      }
+      .code-body .s {
+        color: #f2c185;
+      }
+      .code-body .n {
+        color: #8fd6b4;
+      }
+      .code-body .c {
+        color: var(--lo-dark);
+      }
+
+      /* for agents */
+      .agents-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(2rem, 5vw, 3.5rem);
+      }
+      .agents-col h3 {
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--hi-light);
+        margin-bottom: 1.1rem;
+      }
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .chip {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        background: var(--paper-2);
+        border: 1px solid var(--line-light);
+        color: var(--brand-deep);
+        padding: 0.5rem 0.85rem;
+        border-radius: 8px;
+      }
+      .endpoint-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+      .endpoint {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.84rem;
+        background: var(--paper-2);
+        border: 1px solid var(--line-light);
+        padding: 0.6rem 0.9rem;
+        border-radius: 8px;
+        color: var(--hi-light);
+      }
+      .endpoint .verb {
+        background: rgba(28, 114, 147, 0.1);
+        color: var(--brand-deep);
+        font-weight: 700;
+        font-size: 0.68rem;
+        padding: 0.2rem 0.45rem;
+        border-radius: 5px;
+      }
+      @media (max-width: 800px) {
+        .agents-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* status */
+      .status-strip {
+        background: var(--paper-2);
+        border: 1px solid var(--line-light);
+        border-radius: 14px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .status-cell {
+        padding: 1.5rem 1.4rem;
+        border-right: 1px solid var(--line-light);
+      }
+      .status-cell:last-child {
+        border-right: none;
+      }
+      .status-cell .period {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--brand);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.6rem;
+        display: block;
+      }
+      .status-cell p {
+        font-size: 0.86rem;
+        color: var(--lo-light);
+      }
+      @media (max-width: 800px) {
+        .status-strip {
+          grid-template-columns: 1fr 1fr;
+        }
+        .status-cell {
+          border-bottom: 1px solid var(--line-light);
+        }
+        .status-cell:nth-child(odd) {
+          border-right: 1px solid var(--line-light);
+        }
+        .status-cell:nth-child(even) {
+          border-right: none;
+        }
+      }
+      @media (max-width: 520px) {
+        .status-strip {
+          grid-template-columns: 1fr;
+        }
+        .status-cell {
+          border-right: none !important;
+        }
+      }
+
+      /* footer / final CTA */
+      footer {
+        background: var(--ink);
+        color: var(--hi-dark);
+        padding: clamp(3.5rem, 8vw, 5.5rem) 0 2.5rem;
+      }
+      .footer-cta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 2rem;
+        padding-bottom: 3rem;
+        border-bottom: 1px solid var(--line-dark);
+      }
+      .footer-cta h2 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+        max-width: 26rem;
+        line-height: 1.14;
+      }
+      .footer-cta .btn-primary {
+        font-size: 0.95rem;
+        padding: 0.9rem 1.5rem;
+      }
+      .footer-bottom {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1.5rem;
+        padding-top: 2.2rem;
+      }
+      .footer-col h4 {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--lo-dark);
+        margin-bottom: 0.75rem;
+      }
+      .footer-col p,
+      .footer-col a {
+        font-size: 0.86rem;
+        color: var(--lo-dark);
+        display: block;
+        margin-bottom: 0.4rem;
+      }
+      .footer-col a:hover {
+        color: var(--hi-dark);
+      }
+      .footer-legal {
+        margin-top: 2.5rem;
+        font-size: 0.78rem;
+        color: #57677d;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="nav" id="siteNav">
+      <div class="nav-inner">
+        <a href="#top" class="brand"
+          ><span class="brand-mark"></span>AgentNews</a
+        >
+        <nav class="links">
+          <a href="#problem">Product</a>
+          <a href="#how">How it works</a>
+          <a href="#agents">For agents</a>
+          <a href="#status">Status</a>
+          <!-- TODO: point this at your real repo -->
+          <a href="https://github.com/" class="nav-cta">GitHub ↗</a>
+        </nav>
+        <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">
+          ☰
+        </button>
+      </div>
+      <div class="mobile-panel" id="mobilePanel">
+        <a href="#problem">Product</a>
+        <a href="#how">How it works</a>
+        <a href="#agents">For agents</a>
+        <a href="#status">Status</a>
+        <a href="https://github.com/" class="nav-cta">GitHub ↗</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="wrap">
+          <span class="badge"
+            ><span class="dot"></span>Building in public — MVP in progress</span
+          >
+          <div class="hero-grid">
+            <div>
+              <span class="eyebrow"
+                >Real-time news infrastructure for AI agents</span
+              >
+              <h1 class="hero-title">The news,<br /><em>read once.</em></h1>
+              <p class="hero-sub">
+                AgentNews turns thousands of duplicate articles into one
+                structured, sourced, continuously-updated event — built for
+                agents that need to know what's happening, not browse the web
+                for it.
+              </p>
+              <div class="cta-row">
+                <!-- TODO: point this at your real repo -->
+                <a href="https://github.com/" class="btn btn-primary"
+                  >View on GitHub →</a
+                >
+                <a href="#how" class="btn btn-ghost">See how it works</a>
+              </div>
+            </div>
+
+            <div class="signature" aria-hidden="true">
+              <div class="stage">
+                <div class="article-card c1">
+                  <span class="src">Reuters</span
+                  ><span class="hl">Company X launches new AI model</span>
+                </div>
+                <div class="article-card c2">
+                  <span class="src">The Wire</span
+                  ><span class="hl">Company X unveils latest AI system</span>
+                </div>
+                <div class="article-card c3">
+                  <span class="src">TechDaily</span
+                  ><span class="hl">Company X releases new model</span>
+                </div>
+                <div class="article-card c4">
+                  <span class="src">MarketBeat</span
+                  ><span class="hl">Company X introduces AI tech</span>
+                </div>
+
+                <div class="event-card">
+                  <span class="tag">Structured event</span>
+                  <h4>Company X launches new AI model</h4>
+                  <div class="event-meta">
+                    <div>Sources<b>7</b></div>
+                    <div>Confidence<b>0.94</b></div>
+                    <div>Importance<b>0.91</b></div>
+                    <div>Status<b>Developing</b></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ticker-wrap">
+          <div class="ticker-label">
+            Example event stream — illustrative, API in development
+          </div>
+          <div class="ticker-track" id="tickerTrack">
+            <span class="pill"
+              ><span class="p-dot"></span>Company X launches new AI model
+              <span class="p-score">imp 0.91</span></span
+            >
+            <span class="pill"
+              ><span class="p-dot"></span>Central bank holds interest rates
+              <span class="p-score">imp 0.87</span></span
+            >
+            <span class="pill"
+              ><span class="p-dot"></span>Regional earthquake — magnitude
+              confirmed <span class="p-score">imp 0.95</span></span
+            >
+            <span class="pill"
+              ><span class="p-dot"></span>Semiconductor maker announces new fab
+              <span class="p-score">imp 0.82</span></span
+            >
+            <span class="pill"
+              ><span class="p-dot"></span>Regulator opens review into Company Y
+              <span class="p-score">imp 0.78</span></span
+            >
+            <span class="pill"
+              ><span class="p-dot"></span>Company X launches new AI model
+              <span class="p-score">imp 0.91</span></span
+            >
+            <span class="pill"
+              ><span class="p-dot"></span>Central bank holds interest rates
+              <span class="p-score">imp 0.87</span></span
+            >
+            <span class="pill"
+              ><span class="p-dot"></span>Regional earthquake — magnitude
+              confirmed <span class="p-score">imp 0.95</span></span
+            >
+            <span class="pill"
+              ><span class="p-dot"></span>Semiconductor maker announces new fab
+              <span class="p-score">imp 0.82</span></span
+            >
+            <span class="pill"
+              ><span class="p-dot"></span>Regulator opens review into Company Y
+              <span class="p-score">imp 0.78</span></span
+            >
+          </div>
+        </div>
+      </section>
+
+      <section id="problem">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">The problem</span>
+            <h2>Built for browser tabs, not for agents</h2>
+            <p>
+              The internet's news infrastructure was designed for people reading
+              in a browser — not software that needs to reason over what just
+              happened.
+            </p>
+          </div>
+
+          <div class="problem-grid">
+            <div class="problem-card">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              >
+                <rect x="4" y="4" width="16" height="4" rx="1" />
+                <rect x="4" y="10" width="16" height="4" rx="1" />
+                <rect x="4" y="16" width="16" height="4" rx="1" />
+              </svg>
+              <h3>Information overload</h3>
+              <p>
+                One event can spawn hundreds of near-identical articles before
+                an agent finishes reading the first ten.
+              </p>
+            </div>
+            <div class="problem-card">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              >
+                <rect x="7" y="7" width="12" height="12" rx="2" />
+                <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+              </svg>
+              <h3>Duplicate reporting</h3>
+              <p>
+                Agents burn time and tokens re-reading the same facts from five
+                different outlets, one at a time.
+              </p>
+            </div>
+            <div class="problem-card">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              >
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M3 9h18M8 19v-6" />
+              </svg>
+              <h3>No machine-native format</h3>
+              <p>
+                News is built as pages to browse and scroll, not as structured
+                data an agent can query and reason over.
+              </p>
+            </div>
+            <div class="problem-card">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              >
+                <path d="M4 12a8 8 0 1 1 3 6.2M4 12V7m0 5h5" />
+              </svg>
+              <h3>No sense of change</h3>
+              <p>
+                A story at 8am can look nothing like it does by 6pm — there's no
+                simple way to ask "what changed?"
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="how"
+        style="
+          background: var(--paper-2);
+          border-top: 1px solid var(--line-light);
+          border-bottom: 1px solid var(--line-light);
+        "
+      >
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">How it works</span>
+            <h2>From raw coverage to a live event graph</h2>
+            <p>
+              Four stages turn a flood of duplicate coverage into one evolving,
+              sourced object per real-world event.
+            </p>
+          </div>
+
+          <div class="steps">
+            <div class="step">
+              <span class="num">01 — Ingest</span>
+              <h3>Collect</h3>
+              <p>
+                Continuously pull from licensed feeds, publisher APIs, and
+                official releases.
+              </p>
+            </div>
+            <div class="step">
+              <span class="num">02 — Cluster</span>
+              <h3>Deduplicate</h3>
+              <p>
+                Group coverage of the same event using entities, timing, and
+                semantic similarity.
+              </p>
+            </div>
+            <div class="step">
+              <span class="num">03 — Extract</span>
+              <h3>Structure</h3>
+              <p>
+                Pull individual claims, entities, sources, and confidence — not
+                just a summary.
+              </p>
+            </div>
+            <div class="step">
+              <span class="num">04 — Serve</span>
+              <h3>Expose</h3>
+              <p>
+                Publish events via REST API, streaming, webhooks, and MCP tools
+                for agents.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">What an agent gets back</span>
+            <h2>One event object, not a page of links</h2>
+            <p>
+              Every response is sourced, scored, and diffable against its
+              previous state.
+            </p>
+          </div>
+
+          <div class="code-panel">
+            <div class="code-bar">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <span class="path">GET /news/events/evt_8f291</span>
+            </div>
+            <div class="code-body">
+              <pre
+                style="white-space: pre-wrap; margin: 0"
+              ><span class="c">{</span>
+  <span class="k">"event_id"</span>: <span class="s">"evt_8f291"</span>,
+  <span class="k">"title"</span>: <span class="s">"Company X launches new AI model"</span>,
+  <span class="k">"category"</span>: <span class="s">"technology"</span>,
+  <span class="k">"importance"</span>: <span class="n">0.91</span>,
+  <span class="k">"confidence"</span>: <span class="n">0.94</span>,
+  <span class="k">"status"</span>: <span class="s">"developing"</span>,
+  <span class="k">"sources"</span>: <span class="n">7</span>,
+  <span class="k">"last_updated"</span>: <span class="s">"2026-08-25T14:17:00Z"</span>,
+  <span class="k">"changes_since_last_update"</span>: [
+    <span class="s">"Pricing details announced"</span>,
+    <span class="s">"Competitor issued response"</span>
+  ]
+<span class="c">}</span></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="agents"
+        style="
+          background: var(--paper-2);
+          border-top: 1px solid var(--line-light);
+          border-bottom: 1px solid var(--line-light);
+        "
+      >
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">For agents</span>
+            <h2>Native interfaces, not another page to scrape</h2>
+            <p>
+              Query events directly through REST, or hand an agent MCP tools it
+              can call on its own.
+            </p>
+          </div>
+
+          <div class="agents-grid">
+            <div class="agents-col">
+              <h3>MCP tools</h3>
+              <div class="chip-row">
+                <span class="chip">search_news</span>
+                <span class="chip">get_latest_news</span>
+                <span class="chip">get_event</span>
+                <span class="chip">get_entity</span>
+                <span class="chip">get_changes</span>
+                <span class="chip">get_daily_summary</span>
+              </div>
+            </div>
+            <div class="agents-col">
+              <h3>REST endpoints</h3>
+              <div class="endpoint-list">
+                <div class="endpoint">
+                  <span class="verb">GET</span> /news/latest
+                </div>
+                <div class="endpoint">
+                  <span class="verb">GET</span> /news/events/{id}
+                </div>
+                <div class="endpoint">
+                  <span class="verb">GET</span> /news/search
+                </div>
+                <div class="endpoint">
+                  <span class="verb">GET</span> /news/changes
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="status">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Status</span>
+            <h2>Where things stand today</h2>
+            <p>
+              Pre-launch. Architecture and MVP scope are designed; this is the
+              build phase.
+            </p>
+          </div>
+
+          <div class="status-strip">
+            <div class="status-cell">
+              <span class="period">Months 1–3</span>
+              <p>
+                Core team hired. Ingestion + dedup pipeline live for the
+                Technology &amp; AI category.
+              </p>
+            </div>
+            <div class="status-cell">
+              <span class="period">Months 4–6</span>
+              <p>
+                MVP API and MCP server live. First developer users onboarded.
+              </p>
+            </div>
+            <div class="status-cell">
+              <span class="period">Months 7–12</span>
+              <p>First enterprise design partners. Expanded source coverage.</p>
+            </div>
+            <div class="status-cell">
+              <span class="period">Months 12–18</span>
+              <p>
+                Formal enterprise motion. Categories broaden beyond Technology
+                &amp; AI.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <div class="footer-cta">
+          <h2>Machines need continuously updated knowledge of the world.</h2>
+          <!-- TODO: replace with your real contact -->
+          <a href="mailto:hello@example.com" class="btn btn-primary"
+            >Get in touch →</a
+          >
+        </div>
+
+        <div class="footer-bottom">
+          <div class="footer-col">
+            <h4>AgentNews</h4>
+            <p style="max-width: 20rem; color: var(--lo-dark)">
+              A real-time news intelligence layer for AI agents.
+            </p>
+          </div>
+          <div class="footer-col">
+            <h4>Team</h4>
+            <p>Shahzeb Ahmad Khan — CEO</p>
+            <p>Rajnish Pratap Singh — CTO</p>
+          </div>
+          <div class="footer-col">
+            <h4>Links</h4>
+            <!-- TODO: update these -->
+            <a href="https://github.com/">GitHub</a>
+            <a href="mailto:hello@example.com">Contact</a>
+          </div>
+        </div>
+
+        <div class="footer-legal">
+          <span>© 2026 AgentNews. All rights reserved.</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const menuBtn = document.getElementById("menuBtn")
+      const nav = document.getElementById("siteNav")
+      menuBtn.addEventListener("click", () => {
+        nav.classList.toggle("open")
+        menuBtn.textContent = nav.classList.contains("open") ? "✕" : "☰"
+      })
+      document.querySelectorAll(".mobile-panel a").forEach((a) => {
+        a.addEventListener("click", () => {
+          nav.classList.remove("open")
+          menuBtn.textContent = "☰"
+        })
+      })
+    </script>
+  </body>
+</html>
